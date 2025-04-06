@@ -9,8 +9,15 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
+
+#ifdef PLT_WINDOWS
+    #define GLFW_EXPOSE_NATIVE_WIN32 
+    #define NOMINMAX  // Add this before glfw3native.h to suppress min/max macros
+    #include <GLFW/glfw3native.h>
+#elif
+    #define GLFW_EXPOSE_NATIVE_WAYLAND
+    #include <GLFW/glfw3native.h>
+#endif
 
 #define ENABLE_VALIDATION_LAYERS
 
@@ -25,6 +32,12 @@ namespace CHIKU
         {
             return GraphicsFamily.has_value() && PresentFamily.has_value();
         }
+    };
+
+    struct SwapChainSupportDetails {
+        VkSurfaceCapabilitiesKHR Capabilities;
+        std::vector<VkSurfaceFormatKHR> Formats;
+        std::vector<VkPresentModeKHR> PresentModes;
     };
 
     namespace VKUtils
@@ -51,20 +64,35 @@ namespace CHIKU
         void CreateInstance();
         void CreateSurface();
         void CreateLogicalDevice();
+        void CreateSwapChain();
+        void CreateImageViews();
+
         bool CheckValidationLayerSupport();
+
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
             VkDebugUtilsMessageTypeFlagsEXT messageType,
             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
             void* pUserData);
+        
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
         void SetupDebugMessenger();
 
         QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+
         int RateDeviceSuitability(VkPhysicalDevice device);
+        SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+        bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+
         bool IsDeviceSuitable(VkPhysicalDevice device);
 
         void PickPhysicalDevice();
+        
+        VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+
+        VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+
+        VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
     private:
         GLFWwindow* m_Window;
@@ -74,11 +102,21 @@ namespace CHIKU
         VkDevice m_LogicalDevice;
         VkQueue m_GraphicsQueue;
         VkSurfaceKHR m_Surface;
+        VkSwapchainKHR m_SwapChain;
+        VkFormat m_SwapChainImageFormat;
+        VkExtent2D m_SwapChainExtent;
+
+        std::vector<VkImage> m_SwapChainImages;
+        std::vector<VkImageView> m_SwapChainImageViews;
 
         const uint32_t WIDTH = 800;
         const uint32_t HEIGHT = 600;
         const std::vector<const char*> m_ValidationLayers = {
             "VK_LAYER_KHRONOS_validation"
+        };
+
+        const std::vector<const char*> m_DeviceExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
     };
 } // namespace CHIKU
