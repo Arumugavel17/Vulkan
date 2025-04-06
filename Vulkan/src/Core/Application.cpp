@@ -45,6 +45,7 @@ namespace CHIKU
         CreateInstance();
         SetupDebugMessenger();
         PickPhysicalDevice();
+        CreateLogicalDevice();
     }
 
     void Application::Run()
@@ -196,14 +197,13 @@ namespace CHIKU
     void Application::SetupDebugMessenger()
     {
 #ifdef ENABLE_VALIDATION_LAYERS
-        return;
-#endif
         VkDebugUtilsMessengerCreateInfoEXT createInfo;
         PopulateDebugMessengerCreateInfo(createInfo);
 
         if (VKUtils::CreateDebugUtilsMessengerEXT(m_VKInstance, &createInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug messenger!");
         }
+#endif
     }
 
     QueueFamilyIndices Application::FindQueueFamilies(VkPhysicalDevice device)
