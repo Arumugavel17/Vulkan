@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <map>
+#include <set>
 
 namespace CHIKU
 {
@@ -44,13 +45,29 @@ namespace CHIKU
 
         CreateInstance();
         SetupDebugMessenger();
+        CreateSurface();
         PickPhysicalDevice();
         CreateLogicalDevice();
     }
 
+    Application::~Application()
+    {
+#ifdef ENABLE_VALIDATION_LAYERS
+        VKUtils::DestroyDebugUtilsMessengerEXT(m_VKInstance, m_DebugMessenger, nullptr);
+#endif // ENABLE_VALIDATION_LAYERS
+
+
+        vkDestroyDevice(m_LogicalDevice, nullptr);
+        vkDestroySurfaceKHR(m_VKInstance, m_Surface, nullptr);
+        vkDestroyInstance(m_VKInstance, nullptr);
+        glfwDestroyWindow(m_Window);
+        glfwTerminate();
+    }
+
     void Application::Run()
     {
-        while (!glfwWindowShouldClose(m_Window)) {
+        while (!glfwWindowShouldClose(m_Window)) 
+        {
             glfwPollEvents();
         }
     }
@@ -91,8 +108,17 @@ namespace CHIKU
             PopulateDebugMessengerCreateInfo(debugCreateInfo);
             createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 #endif
-        if (vkCreateInstance(&createInfo, nullptr, &m_VKInstance) != VK_SUCCESS) {
+        if (vkCreateInstance(&createInfo, nullptr, &m_VKInstance) != VK_SUCCESS) 
+        {
             throw std::runtime_error("failed to create Vulkan instance!");
+        }
+    }
+
+    void Application::CreateSurface()
+    {
+        if (glfwCreateWindowSurface(m_VKInstance, m_Window, nullptr, &m_Surface) != VK_SUCCESS) 
+        {
+            throw std::runtime_error("failed to create window surface!");
         }
     }
 
@@ -104,16 +130,22 @@ namespace CHIKU
 
         QueueFamilyIndices indices = FindQueueFamilies(m_PhysicalDevice);
 
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.GraphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<uint32_t> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
+
+        for (uint32_t queueFamily : uniqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
         
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
         createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -125,7 +157,8 @@ namespace CHIKU
         createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
 #endif // ENABLE_VALIDATION_LAYERS
 
-        if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
+        if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) 
+        {
             throw std::runtime_error("failed to create logical device!");
         }
 
@@ -140,17 +173,21 @@ namespace CHIKU
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-        for (const char* layerName : m_ValidationLayers) {
+        for (const char* layerName : m_ValidationLayers) 
+        {
             bool layerFound = false;
 
-            for (const auto& layerProperties : availableLayers) {
-                if (strcmp(layerName, layerProperties.layerName) == 0) {
+            for (const auto& layerProperties : availableLayers) 
+            {
+                if (strcmp(layerName, layerProperties.layerName) == 0)
+                {
                     layerFound = true;
                     break;
                 }
             }
 
-            if (!layerFound) {
+            if (!layerFound) 
+            {
                 return false;
             }
         }
@@ -200,7 +237,8 @@ namespace CHIKU
         VkDebugUtilsMessengerCreateInfoEXT createInfo;
         PopulateDebugMessengerCreateInfo(createInfo);
 
-        if (VKUtils::CreateDebugUtilsMessengerEXT(m_VKInstance, &createInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS) {
+        if (VKUtils::CreateDebugUtilsMessengerEXT(m_VKInstance, &createInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to set up debug messenger!");
         }
 #endif
@@ -215,6 +253,7 @@ namespace CHIKU
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
+
         int i = 0;
         for (const auto& queueFamily : queueFamilies) 
         {
@@ -223,13 +262,21 @@ namespace CHIKU
                 indices.GraphicsFamily = i;
             }
 
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_Surface, &presentSupport);
+            if (presentSupport) 
+            {
+                indices.PresentFamily = i;
+            }
+
             i++;
         }
 
         return indices;
     }
 
-    int Application::RateDeviceSuitability(VkPhysicalDevice device) {
+    int Application::RateDeviceSuitability(VkPhysicalDevice device) 
+    {
         
         VkPhysicalDeviceProperties deviceProperties;
         vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -240,7 +287,8 @@ namespace CHIKU
         int score = 0;
 
         // Discrete GPUs have a significant performance advantage
-        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
             score += 1000;
         }
 
@@ -279,7 +327,8 @@ namespace CHIKU
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(m_VKInstance, &deviceCount, nullptr);
 
-        if (deviceCount == 0) {
+        if (deviceCount == 0) 
+        {
             throw std::runtime_error("failed to find GPUs with Vulkan support!");
         }
 
@@ -287,16 +336,17 @@ namespace CHIKU
         vkEnumeratePhysicalDevices(m_VKInstance, &deviceCount, devices.data());
         // Selection logic can be added here
         
-            for (const auto& device : devices) 
+        for (const auto& device : devices)
+        {
+            if (IsDeviceSuitable(device))
             {
-                if (IsDeviceSuitable(device)) 
-                {
-                    m_PhysicalDevice = device;
-                    break;
-                }
+                m_PhysicalDevice = device;
+                break;
             }
+        }
 
-        if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        if (m_PhysicalDevice == VK_NULL_HANDLE) 
+        {
             throw std::runtime_error("failed to find a suitable GPU!");
         }
 
@@ -316,20 +366,9 @@ namespace CHIKU
             vkGetPhysicalDeviceProperties(m_PhysicalDevice, &deviceProperties);
             std::cout << "Device Name: " << deviceProperties.deviceName << std::endl;
         }
-        else {
+        else 
+        {
             throw std::runtime_error("failed to find a suitable GPU!");
         }
-    }
-
-    Application::~Application()
-    {
-#ifdef ENABLE_VALIDATION_LAYERS
-        VKUtils::DestroyDebugUtilsMessengerEXT(m_VKInstance, m_DebugMessenger, nullptr);
-#endif // ENABLE_VALIDATION_LAYERS
-
-        vkDestroyDevice(m_LogicalDevice, nullptr);
-        vkDestroyInstance(m_VKInstance, nullptr);
-        glfwDestroyWindow(m_Window);
-        glfwTerminate();
     }
 } // namespace CHIKU

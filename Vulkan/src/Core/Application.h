@@ -1,11 +1,16 @@
 // Application.hpp
 #pragma once
 
-#include "GLFW/glfw3.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <string>
 #include <optional>
+
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #define ENABLE_VALIDATION_LAYERS
 
@@ -14,10 +19,11 @@ namespace CHIKU
     struct QueueFamilyIndices
     {
         std::optional<uint32_t> GraphicsFamily;
+        std::optional<uint32_t> PresentFamily;
 
         bool isComplete()
         {
-            return GraphicsFamily.has_value();
+            return GraphicsFamily.has_value() && PresentFamily.has_value();
         }
     };
 
@@ -43,6 +49,7 @@ namespace CHIKU
     private:
         std::vector<const char*> GetRequiredExtensions();
         void CreateInstance();
+        void CreateSurface();
         void CreateLogicalDevice();
         bool CheckValidationLayerSupport();
 
@@ -66,6 +73,7 @@ namespace CHIKU
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
         VkDevice m_LogicalDevice;
         VkQueue m_GraphicsQueue;
+        VkSurfaceKHR m_Surface;
 
         const uint32_t WIDTH = 800;
         const uint32_t HEIGHT = 600;
