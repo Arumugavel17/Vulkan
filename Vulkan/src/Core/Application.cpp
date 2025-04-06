@@ -47,18 +47,6 @@ namespace CHIKU
         PickPhysicalDevice();
     }
 
-    Application::~Application()
-    {
-#ifdef ENABLE_VALIDATION_LAYERS
-            VKUtils::DestroyDebugUtilsMessengerEXT(m_VKInstance, m_DebugMessenger, nullptr);
-#endif // ENABLE_VALIDATION_LAYERS
-
-
-        vkDestroyInstance(m_VKInstance, nullptr);
-        glfwDestroyWindow(m_Window);
-        glfwTerminate();
-    }
-
     void Application::Run()
     {
         while (!glfwWindowShouldClose(m_Window)) {
@@ -105,6 +93,42 @@ namespace CHIKU
         if (vkCreateInstance(&createInfo, nullptr, &m_VKInstance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create Vulkan instance!");
         }
+    }
+
+    void Application::CreateLogicalDevice()
+    {
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        float queuePriority = 1.0f;
+
+        QueueFamilyIndices indices = FindQueueFamilies(m_PhysicalDevice);
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.GraphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+        
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+
+        createInfo.pEnabledFeatures = &deviceFeatures;
+
+        createInfo.enabledExtensionCount = 0;
+        createInfo.enabledLayerCount = 0;
+
+#ifdef ENABLE_VALIDATION_LAYERS
+        createInfo.enabledLayerCount = static_cast<uint32_t>(m_ValidationLayers.size());
+        createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
+#endif // ENABLE_VALIDATION_LAYERS
+
+        if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create logical device!");
+        }
+
+        vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
     }
 
     bool Application::CheckValidationLayerSupport()
@@ -182,7 +206,7 @@ namespace CHIKU
         }
     }
 
-    QueueFamilyIndices Application::findQueueFamilies(VkPhysicalDevice device)
+    QueueFamilyIndices Application::FindQueueFamilies(VkPhysicalDevice device)
     {
         QueueFamilyIndices indices;
         uint32_t queueFamilyCount = 0;
@@ -192,8 +216,10 @@ namespace CHIKU
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
         int i = 0;
-        for (const auto& queueFamily : queueFamilies) {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        for (const auto& queueFamily : queueFamilies) 
+        {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
+            {
                 indices.GraphicsFamily = i;
             }
 
@@ -243,7 +269,7 @@ namespace CHIKU
         bool supportGeometoryShader = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
             deviceFeatures.geometryShader;
 
-        QueueFamilyIndices indices = findQueueFamilies(device);
+        QueueFamilyIndices indices = FindQueueFamilies(device);
 
         return indices.isComplete() && supportGeometoryShader;;
     }
@@ -286,9 +312,24 @@ namespace CHIKU
         // Check if the best candidate is suitable at all
         if (candidates.rbegin()->first > 0) {
             m_PhysicalDevice = candidates.rbegin()->second;
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(m_PhysicalDevice, &deviceProperties);
+            std::cout << "Device Name: " << deviceProperties.deviceName << std::endl;
         }
         else {
             throw std::runtime_error("failed to find a suitable GPU!");
         }
+    }
+
+    Application::~Application()
+    {
+#ifdef ENABLE_VALIDATION_LAYERS
+        VKUtils::DestroyDebugUtilsMessengerEXT(m_VKInstance, m_DebugMessenger, nullptr);
+#endif // ENABLE_VALIDATION_LAYERS
+
+        vkDestroyDevice(m_LogicalDevice, nullptr);
+        vkDestroyInstance(m_VKInstance, nullptr);
+        glfwDestroyWindow(m_Window);
+        glfwTerminate();
     }
 } // namespace CHIKU

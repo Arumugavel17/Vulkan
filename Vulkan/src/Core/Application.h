@@ -43,6 +43,7 @@ namespace CHIKU
     private:
         std::vector<const char*> GetRequiredExtensions();
         void CreateInstance();
+        void CreateLogicalDevice();
         bool CheckValidationLayerSupport();
 
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -52,7 +53,7 @@ namespace CHIKU
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
         void SetupDebugMessenger();
 
-        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+        QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
         int RateDeviceSuitability(VkPhysicalDevice device);
         bool IsDeviceSuitable(VkPhysicalDevice device);
 
@@ -60,9 +61,11 @@ namespace CHIKU
 
     private:
         GLFWwindow* m_Window;
-        VkInstance m_VKInstance;
+        VkInstance m_VKInstance;    
         VkDebugUtilsMessengerEXT m_DebugMessenger;
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+        VkDevice m_LogicalDevice;
+        VkQueue m_GraphicsQueue;
 
         const uint32_t WIDTH = 800;
         const uint32_t HEIGHT = 600;
