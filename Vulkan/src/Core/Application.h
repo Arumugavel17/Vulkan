@@ -14,7 +14,7 @@
     #define GLFW_EXPOSE_NATIVE_WIN32 
     #define NOMINMAX  // Add this before glfw3native.h to suppress min/max macros
     #include <GLFW/glfw3native.h>
-#elif
+#elif PLT_UNIX
     #define GLFW_EXPOSE_NATIVE_WAYLAND
     #include <GLFW/glfw3native.h>
 #endif
