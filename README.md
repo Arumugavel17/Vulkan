@@ -70,16 +70,17 @@ Make sure `cmake`, `g++`, and `git` are also installed.
    ```
 
 2. **Set Up the Vulkan Environment**
+   - Go to the path where you extracted Vulkan
    ```bash
    cd 1.4.309.0/x86_64/bin
    source .
    cd 1.4.309.0/x86_64/include
    source .
-   1.4.309.0/x86_64/bin/lib
+   cd 1.4.309.0/x86_64/bin/lib
    source .
    ```
 
-3. **Clone the Repository**
+4. **Clone the Repository**
    ```bash
    git clone --recurse-submodules https://github.com/Arumugavel17/Vulkan.git
    cd Vulkan
@@ -87,14 +88,14 @@ Make sure `cmake`, `g++`, and `git` are also installed.
 
    > ℹ️ To persist the environment setup across sessions, add the above `source` line to your `~/.bashrc` or `~/.zshrc`.
 
-4. **Build the Project**
+5. **Build the Project**
    ```bash
    mkdir build && cd build
    cmake ..
    cmake --build .
    ```
 
-5. **Run the Application**
+6. **Run the Application**
    ```bash
    cd Vulkan (inside build)
    ./Vulkan
