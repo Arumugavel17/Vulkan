@@ -10,6 +10,7 @@ This repository contains a Vulkan-based graphics application with cross-platform
 - [Visual Studio 2022 or later](https://visualstudio.microsoft.com/)
 - "Desktop development with C++" workload
 - Git
+- [Vulkan SDK (LunarG)](https://vulkan.lunarg.com/sdk/home)
 
 ### 📦 Setup Steps
 
@@ -17,17 +18,30 @@ This repository contains a Vulkan-based graphics application with cross-platform
    - Download and install from the [official site](https://visualstudio.microsoft.com/).
    - During installation, select **"Desktop development with C++"**.
 
-2. **Clone the Repository**
+2. **Download and Install the Vulkan SDK**
+   - Go to the [LunarG Vulkan SDK](https://vulkan.lunarg.com/sdk/home) Downloads page.
+   - Download the latest Windows SDK version (e.g., 1.4.309.0).
+   - Run the installer and follow the instructions.
+
+3. **Configure Vulkan SDK Environment Variables**
+   - The installer will automatically set the following environment variables:
+      - VULKAN_SDK – Path to the installed SDK
+      - Adds the SDK's Bin directory to the system PATH
+   - To verify:
+      1. Open the command prompt.
+      2. Run: echo %VULKAN_SDK%
+      It should print something like: C:\VulkanSDK\1.4.309.0
+4. **Clone the Repository**
    ```bash
    git clone --recurse-submodules https://github.com/Arumugavel17/Vulkan.git
    ```
 
-3. **Open the Project in Visual Studio**
+5. **Open the Project in Visual Studio**
    - Launch Visual Studio.
    - Go to `File` → `Open` → `CMake...`
    - Select the root folder of the cloned repository.
 
-4. **Build and Run**
+6. **Build and Run**
    - Visual Studio will automatically configure the CMake project.
    - Select the build configuration (`Debug` or `Release`) and architecture (`x64`).
    - Use the build and run buttons to compile and execute the project.
