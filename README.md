@@ -82,7 +82,19 @@ Make sure `cmake`, `g++`, and `git` are also installed.
    source .
    ```
 
-4. **Clone the Repository**
+4. **Run setup-env.sh**
+   ```
+   cd 1.4.309.0/
+   chmod +x setup-env.sh
+   ./setup-env.sh
+   source setup-env.sh
+   ```
+5. Add the add source ~/1.4.309.0/setup-env.sh to .bashrc
+   ```
+   vim ~/.bashrc
+   add source ~/1.4.309.0/setup-env.sh
+   ```
+6. **Clone the Repository**
    ```bash
    git clone --recurse-submodules https://github.com/Arumugavel17/Vulkan.git
    cd Vulkan
@@ -90,14 +102,14 @@ Make sure `cmake`, `g++`, and `git` are also installed.
 
    > ℹ️ To persist the environment setup across sessions, add the above `source` line to your `~/.bashrc` or `~/.zshrc`.
 
-5. **Build the Project**
+7. **Build the Project**
    ```bash
    mkdir build && cd build
    cmake ..
    cmake --build .
    ```
 
-6. **Run the Application**
+8. **Run the Application**
    ```bash
    cd Vulkan (inside build)
    ./Vulkan
