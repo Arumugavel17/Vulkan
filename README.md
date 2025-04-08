@@ -57,8 +57,8 @@ Install the required system packages:
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt install libwayland-dev libxkbcommon-dev
-libxinerama-dev libxcursor-dev libx11-dev libxext-dev 
-libxi-dev libxrandr-dev wayland-protocols vulkan-validationlayers g++ pkg-config
+sudo apt libxinerama-dev libxcursor-dev libx11-dev libxext-dev 
+sudo apt libxi-dev libxrandr-dev wayland-protocols vulkan-validationlayers g++ pkg-config
 ```
 
 Make sure `cmake`, `g++`, and `git` are also installed.
