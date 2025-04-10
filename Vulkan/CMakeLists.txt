@@ -1,6 +1,6 @@
 ﻿
-include_directories($ENV{VULKAN_SDK}/Include)
-link_directories($ENV{VULKAN_SDK}/Lib)
+include_directories($ENV{VULKAN_SDK}/include)
+link_directories($ENV{VULKAN_SDK}/lib)
 
 # Add source to this project's executable.
 file(GLOB IMGUI_SOURCES "vendor/imgui/*.cpp" "vendor/imgui/*.h")
