@@ -1,4 +1,4 @@
-﻿set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")
