@@ -1,22 +1,25 @@
-﻿
-include_directories($ENV{VULKAN_SDK}/Include)
-link_directories($ENV{VULKAN_SDK}/Lib)
+﻿set(CMAKE_CXX_STANDARD 17)
 
-# Add source to this project's executable.
+add_subdirectory("vendor/glfw")
+add_subdirectory("vendor/glm")
+
+include_directories("vendor/glfw/include")
+include_directories("vendor/glm")
+
+include_directories($ENV{VULKAN_SDK}/include)
+link_directories($ENV{VULKAN_SDK}/lib)
+
 file(GLOB IMGUI_SOURCES "vendor/imgui/*.cpp" "vendor/imgui/*.h")
+file(GLOB_RECURSE SRC_SOURCES src/**/*.cpp)
+file(GLOB_RECURSE SRC_HEADERS src/**/*.hpp)
 
-file(GLOB_RECURSE SRC_SOURCES 
-    src/**/*.cpp)
+add_executable(Vulkan 
+    ${IMGUI_SOURCES}
+    ${SRC_SOURCES}
+    ${SRC_HEADERS})
 
-file(GLOB_RECURSE SRC_HEADERS 
-    src/**/*.hpp)
-
-add_executable (Vulkan 
-	${IMGUI_SOURCES}
-	${SRC_SOURCES}
-	${SRC_HEADERS})
-
-message(${CMAKE_SOURCE_DIR})
+message("Source :" ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(Vulkan PRIVATE CHIKU_SRC_PATH=${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 if(WIN32)
     set(VULKAN_LIB vulkan-1)
@@ -34,13 +37,9 @@ else()
 endif()
 
 target_link_libraries(Vulkan
-        glfw
-		${VULKAN_LIB})
-
-add_subdirectory ("vendor/glm")
-add_subdirectory ("vendor/glfw")
-include_directories("vendor/glfw/include")
-include_directories("vendor/glm")
+    glfw
+    ${VULKAN_LIB}
+)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Vulkan PROPERTY CXX_STANDARD 20)

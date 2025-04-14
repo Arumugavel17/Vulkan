@@ -1,6 +1,9 @@
 // Application.hpp
 #pragma once
 
+#define STR2(x) #x
+#define STR(x) STR2(x)
+
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <string>
@@ -57,15 +60,23 @@ namespace CHIKU
     public:
         Application();
         virtual ~Application();
+        void GLFWCleanUp();
         void Run();
 
     private:
+        void VulkanCleanUp();
+
+        void WindowInit();
+        void VulkanInit();
+
         std::vector<const char*> GetRequiredExtensions();
         void CreateInstance();
         void CreateSurface();
         void CreateLogicalDevice();
         void CreateSwapChain();
         void CreateImageViews();
+        void CreateGraphicsPipeline();
+        void CreateRenderPass();
 
         bool CheckValidationLayerSupport();
 
@@ -94,6 +105,8 @@ namespace CHIKU
 
         VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
+        VkShaderModule CreateShaderModule(const std::vector<char>& code);
+
     private:
         GLFWwindow* m_Window;
         VkInstance m_VKInstance;    
@@ -105,7 +118,10 @@ namespace CHIKU
         VkSwapchainKHR m_SwapChain;
         VkFormat m_SwapChainImageFormat;
         VkExtent2D m_SwapChainExtent;
-
+        VkRenderPass m_RenderPass;
+        VkPipelineLayout m_PipelineLayout;
+        VkPipeline m_GraphicsPipeline;
+        
         std::vector<VkImage> m_SwapChainImages;
         std::vector<VkImageView> m_SwapChainImageViews;
 
